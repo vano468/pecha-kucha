@@ -73,6 +73,7 @@ class OkularDbus(QtGui.QDialog):
         if self.okular != None:
             self.okular.openDocument("/home/vano468/Dropbox/Docs/books/pdf/a.pdf")
             self.okular.slotGotoFirst()
+            self.okular.slotTogglePresentation()
             self.okularWindow.show()
 
     def okularNextSlide(self):
