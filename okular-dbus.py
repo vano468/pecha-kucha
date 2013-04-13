@@ -10,6 +10,7 @@ from dbus.exceptions import DBusException
 class OkularDbus(QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
+
         self.initUI()
         self.okular = None
 
@@ -74,7 +75,7 @@ class OkularDbus(QtGui.QDialog):
             self.okular.openDocument("/home/vano468/Dropbox/Docs/books/pdf/a.pdf")
             self.okular.slotGotoFirst()
             self.okular.slotTogglePresentation()
-            self.okularWindow.show()
+            self.setFocus()
 
     def okularNextSlide(self):
         if self.okular.pages() == self.okular.currentPage():
