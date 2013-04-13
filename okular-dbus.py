@@ -37,6 +37,9 @@ class OkularDbus(QtGui.QDialog):
         self.connect(quitButton, QtCore.SIGNAL('clicked()'), quit)
         layout.addWidget(quitButton)
 
+    def okularLaunch(self):
+        process = Popen('/usr/bin/okular', stdout=PIPE)
+
     def dbusOkularConnect(self):
         try:
             bus = dbus.SessionBus()
@@ -50,9 +53,14 @@ class OkularDbus(QtGui.QDialog):
                 proxy = bus.get_object(okularIface, "/okular")
                 self.okular = dbus.Interface(proxy, "org.kde.okular")
             else:
-                print "Okular is not running"
+                print "Okular is not running. Trying to reconnect."
+                self.dbusOkularConnectTimer(2.0)
         except DBusException, e:
             raise StandardError("Dbus error: %s" % e)
+
+    def dbusOkularConnectTimer(self, sec):
+        connectTimer = threading.Timer(sec, self.dbusOkularConnect)
+        connectTimer.start()
 
     def okularOpenFile(self):
         if self.okular != None:
@@ -61,17 +69,17 @@ class OkularDbus(QtGui.QDialog):
 
     def okularNextSlide(self):
         if self.okular.pages() == self.okular.currentPage():
-            print "Reached end of file"
+            print "Reached end of file."
         else:
             self.okular.slotNextPage()
-
 
 def main():
     app = QtGui.QApplication(sys.argv)
     okularDbus = OkularDbus()
     okularDbus.show()
 
-    okularDbus.dbusOkularConnect()
+    okularDbus.okularLaunch()
+    okularDbus.dbusOkularConnectTimer(2.0)
 
     sys.exit(app.exec_()) 
 
