@@ -34,8 +34,12 @@ class OkularDbus(QtGui.QDialog):
         layout.addWidget(nextSlideButton)
 
         quitButton = QtGui.QPushButton("Exit")
-        self.connect(quitButton, QtCore.SIGNAL('clicked()'), quit)
+        self.connect(quitButton, QtCore.SIGNAL('clicked()'), self.exit)
         layout.addWidget(quitButton)
+
+    def exit(self):
+        self.okularWindow.close()
+        quit()
 
     def okularLaunch(self):
         process = Popen('/usr/bin/okular', stdout=PIPE)
@@ -52,9 +56,12 @@ class OkularDbus(QtGui.QDialog):
             if okularIface != None:
                 proxy = bus.get_object(okularIface, "/okular")
                 self.okular = dbus.Interface(proxy, "org.kde.okular")
+                proxy = bus.get_object(okularIface, "/okular/okular__Shell")
+                self.okularWindow = dbus.Interface(proxy, "org.qtproject.Qt.QWidget")
+                self.okularWindow.hide()
             else:
                 print "Okular is not running. Trying to reconnect."
-                self.dbusOkularConnectTimer(2.0)
+                self.dbusOkularConnectTimer(0.1)
         except DBusException, e:
             raise StandardError("Dbus error: %s" % e)
 
@@ -66,6 +73,7 @@ class OkularDbus(QtGui.QDialog):
         if self.okular != None:
             self.okular.openDocument("/home/vano468/Dropbox/Docs/books/pdf/a.pdf")
             self.okular.slotGotoFirst()
+            self.okularWindow.show()
 
     def okularNextSlide(self):
         if self.okular.pages() == self.okular.currentPage():
@@ -79,12 +87,9 @@ def main():
     okularDbus.show()
 
     okularDbus.okularLaunch()
-    okularDbus.dbusOkularConnectTimer(2.0)
+    okularDbus.dbusOkularConnectTimer(0.1)
 
     sys.exit(app.exec_()) 
 
 if __name__ == '__main__':
     main()
- 
-
-
