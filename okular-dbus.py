@@ -12,6 +12,7 @@ class OkularDbus(QtGui.QDialog):
         QtGui.QDialog.__init__(self)
 
         self.initUI()
+        self.initShcuts()
         self.okular = None
 
     def initUI(self):
@@ -37,6 +38,11 @@ class OkularDbus(QtGui.QDialog):
         quitButton = QtGui.QPushButton("Exit")
         self.connect(quitButton, QtCore.SIGNAL('clicked()'), self.exit)
         layout.addWidget(quitButton)
+
+    def initShcuts(self):
+        self.shcutStart = QtGui.QShortcut(self)
+        self.shcutStart.setKey("PgDown")
+        self.connect(self.shcutStart, QtCore.SIGNAL("activated()"), self.okularOpenFile)
 
     def exit(self):
         self.okularWindow.close()
