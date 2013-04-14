@@ -47,9 +47,13 @@ class PechaKuchaManager(QtGui.QDialog):
         layout.addWidget(quitButton)
 
     def initShcuts(self):
-        self.shcutStart = QtGui.QShortcut(self)
-        self.shcutStart.setKey("PgDown")
-        self.connect(self.shcutStart, QtCore.SIGNAL("activated()"), self.okularNextPresentation)
+        self.shcutPgDown = QtGui.QShortcut(self)
+        self.shcutPgDown.setKey("PgDown")
+        self.connect(self.shcutPgDown, QtCore.SIGNAL("activated()"), self.okularNextPresentation)
+
+        self.shcutEsc = QtGui.QShortcut(self)
+        self.shcutEsc.setKey("Esc")
+        self.connect(self.shcutEsc, QtCore.SIGNAL("activated()"), self.exit)
 
     def exit(self):
         if self.okularWin:
@@ -92,7 +96,7 @@ class OkularApplication():
         process = Popen('/usr/bin/okular', stdout=PIPE)
 
     def connectWithTimer(self):
-        sec = 0.1
+        sec = 1
         connectTimer = threading.Timer(sec, self.connect)
         connectTimer.start()
 
