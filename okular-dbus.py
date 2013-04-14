@@ -17,6 +17,7 @@ class OkularDbus(QtGui.QDialog):
         self.initShcuts()
 
         self.curPresentation = 0
+        self.slideTimer = 20.0
         self.okular = None
         self.okularWindow = None
 
@@ -90,13 +91,22 @@ class OkularDbus(QtGui.QDialog):
             self.setFocus()
 
     def okularNextPresentation(self):
-        self.okularOpenFile(self.config["file"][self.curPresentation])
+        if self.curPresentation < len(self.config["file"]):
+            self.okularOpenFile(self.config["file"][self.curPresentation])
+            self.okularNextSlideTimer()
 
     def okularNextSlide(self):
         if self.okular.pages() == self.okular.currentPage():
             print "Reached end of file."
+            self.okular.slotTogglePresentation()
+            self.curPresentation += 1
         else:
             self.okular.slotNextPage()
+            self.okularNextSlideTimer()
+
+    def okularNextSlideTimer(self):
+        slideTimer = threading.Timer(self.slideTimer, self.okularNextSlide)
+        slideTimer.start()
 
     def configXmlParser(self, path):
         if os.path.isfile(path):
