@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
+import os
 import sys
 import dbus
 import threading
+from xml.dom import minidom
 from PyQt4 import QtGui, QtCore
 from subprocess import Popen, PIPE
 from dbus.exceptions import DBusException
@@ -14,6 +16,7 @@ class OkularDbus(QtGui.QDialog):
         self.initUI()
         self.initShcuts()
         self.okular = None
+        self.okularWindow = None
 
     def initUI(self):
         self.setWindowTitle("Pecha Kucha NG")
@@ -45,7 +48,8 @@ class OkularDbus(QtGui.QDialog):
         self.connect(self.shcutStart, QtCore.SIGNAL("activated()"), self.okularOpenFile)
 
     def exit(self):
-        self.okularWindow.close()
+        if self.okularWindow:
+            self.okularWindow.close()
         quit()
 
     def okularLaunch(self):
@@ -89,15 +93,39 @@ class OkularDbus(QtGui.QDialog):
         else:
             self.okular.slotNextPage()
 
-def main():
+    def configXmlParser(self, path):
+        if os.path.isfile(path):
+            config = {"file": [], "title": [], "presenter": [], "organization": []}    
+            dom = minidom.parse(path)
+            configPath = os.getcwd() + '/' + path
+            configPath = configPath[:-(len(configPath) - configPath.rindex("/"))]
+            for node in dom.getElementsByTagName('id'):
+                config["file"].append(configPath + "/" + node.toxml().replace("<id>", "").replace("</id>", "") + ".pdf")
+            for node in dom.getElementsByTagName('title'):
+                config["title"].append(node.toxml().replace("<title>", "").replace("</title>", ""))
+            for node in dom.getElementsByTagName('presenter'):
+                config["presenter"].append(node.toxml().replace("<presenter>", "").replace("</presenter>", ""))
+            for node in dom.getElementsByTagName('organization'):
+                config["organization"].append(node.toxml().replace("<organization>", "").replace("</organization>", ""))
+            self.config = config
+            print self.config
+        else:
+            print "File not exist. Exiting."
+            self.exit()
+
+def main(arg):
     app = QtGui.QApplication(sys.argv)
     okularDbus = OkularDbus()
     okularDbus.show()
-
+    
+    okularDbus.configXmlParser(arg)
     okularDbus.okularLaunch()
     okularDbus.dbusOkularConnectTimer(0.1)
 
     sys.exit(app.exec_()) 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        print "Argument 'config file', not presented."
+    else:
+        main(sys.argv[1])
