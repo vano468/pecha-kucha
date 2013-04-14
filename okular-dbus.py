@@ -8,8 +8,9 @@ from xml.dom import minidom
 from PyQt4 import QtGui, QtCore
 from subprocess import Popen, PIPE
 from dbus.exceptions import DBusException
- 
-class OkularDbus(QtGui.QDialog):
+
+
+class PechaKuchaManager(QtGui.QDialog):
     def __init__(self):
         QtGui.QDialog.__init__(self)
 
@@ -67,7 +68,7 @@ class OkularDbus(QtGui.QDialog):
             for iface in dbusIface.ListNames():
                 if "okular" in iface:
                     okularIface = iface
-            if okularIface != None:
+            if okularIface:
                 proxy = bus.get_object(okularIface, "/okular")
                 self.okular = dbus.Interface(proxy, "org.kde.okular")
                 proxy = bus.get_object(okularIface, "/okular/okular__Shell")
@@ -84,7 +85,7 @@ class OkularDbus(QtGui.QDialog):
         connectTimer.start()
 
     def okularOpenFile(self, path):
-        if self.okular != None:
+        if self.okular:
             self.okular.openDocument(path)
             self.okular.slotGotoFirst()
             self.okular.slotTogglePresentation()
@@ -128,14 +129,15 @@ class OkularDbus(QtGui.QDialog):
             print "File not exist. Exiting."
             self.exit()
 
+
 def main(arg):
     app = QtGui.QApplication(sys.argv)
-    okularDbus = OkularDbus()
-    okularDbus.show()
+    pkManager = PechaKuchaManager()
+    pkManager.show()
     
-    okularDbus.configXmlParser(arg)
-    okularDbus.okularLaunch()
-    okularDbus.dbusOkularConnectTimer(0.1)
+    pkManager.configXmlParser(arg)
+    pkManager.okularLaunch()
+    pkManager.dbusOkularConnectTimer(0.1)
 
     sys.exit(app.exec_()) 
 
