@@ -15,6 +15,8 @@ class OkularDbus(QtGui.QDialog):
 
         self.initUI()
         self.initShcuts()
+
+        self.curPresentation = 0
         self.okular = None
         self.okularWindow = None
 
@@ -31,7 +33,7 @@ class OkularDbus(QtGui.QDialog):
         layout.addWidget(titleLabel)
 
         openButton = QtGui.QPushButton("Open")
-        self.connect(openButton, QtCore.SIGNAL('clicked()'), self.okularOpenFile)
+        self.connect(openButton, QtCore.SIGNAL('clicked()'), self.okularNextPresentation)
         layout.addWidget(openButton)
 
         nextSlideButton = QtGui.QPushButton("Next")
@@ -45,7 +47,7 @@ class OkularDbus(QtGui.QDialog):
     def initShcuts(self):
         self.shcutStart = QtGui.QShortcut(self)
         self.shcutStart.setKey("PgDown")
-        self.connect(self.shcutStart, QtCore.SIGNAL("activated()"), self.okularOpenFile)
+        self.connect(self.shcutStart, QtCore.SIGNAL("activated()"), self.okularNextPresentation)
 
     def exit(self):
         if self.okularWindow:
@@ -80,12 +82,15 @@ class OkularDbus(QtGui.QDialog):
         connectTimer = threading.Timer(sec, self.dbusOkularConnect)
         connectTimer.start()
 
-    def okularOpenFile(self):
+    def okularOpenFile(self, path):
         if self.okular != None:
-            self.okular.openDocument("/home/vano468/Dropbox/Docs/books/pdf/a.pdf")
+            self.okular.openDocument(path)
             self.okular.slotGotoFirst()
             self.okular.slotTogglePresentation()
             self.setFocus()
+
+    def okularNextPresentation(self):
+        self.okularOpenFile(self.config["file"][self.curPresentation])
 
     def okularNextSlide(self):
         if self.okular.pages() == self.okular.currentPage():
