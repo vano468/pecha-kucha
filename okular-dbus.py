@@ -6,6 +6,9 @@ import dbus
 import threading
 from xml.dom import minidom
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtWebKit import *
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 from subprocess import Popen, PIPE
 from dbus.exceptions import DBusException
 
@@ -13,34 +16,24 @@ class PechaKuchaManager(QtGui.QDialog):
     def __init__(self, config, okularApp, okularWin):
         QtGui.QDialog.__init__(self)
 
-        self.initUI()
-        self.initShcuts()
-
+        self.webView = None
         self.config = config
         self.curPresentation = 0
         self.slideTimer = 0.1
         self.okularApp = okularApp
         self.okularWin = okularWin
 
+        self.initUI()
+        self.initShcuts()
+        self.initSignals()
+        self.emit(SIGNAL("setViewContent()")) 
+
     def initUI(self):
         self.setWindowTitle("Pecha Kucha NG")
         layout = QtGui.QVBoxLayout(self)
 
-        titleLabel = QtGui.QLabel("Pecha Kucha NG")
-        titleLabel.setAlignment(QtCore.Qt.AlignHCenter)
-        tLabelFont = QtGui.QFont(self)
-        tLabelFont.setBold(True)
-        tLabelFont.setPixelSize(18)
-        titleLabel.setFont(tLabelFont)
-        layout.addWidget(titleLabel)
-
-        openButton = QtGui.QPushButton("Open")
-        self.connect(openButton, QtCore.SIGNAL('clicked()'), self.okularNextPresentation)
-        layout.addWidget(openButton)
-
-        nextSlideButton = QtGui.QPushButton("Next")
-        self.connect(nextSlideButton, QtCore.SIGNAL('clicked()'), self.okularNextSlide)
-        layout.addWidget(nextSlideButton)
+        self.webView = QWebView()
+        layout.addWidget(self.webView)
 
         quitButton = QtGui.QPushButton("Exit")
         self.connect(quitButton, QtCore.SIGNAL('clicked()'), self.exit)
@@ -55,11 +48,44 @@ class PechaKuchaManager(QtGui.QDialog):
         self.shcutEsc.setKey("Esc")
         self.connect(self.shcutEsc, QtCore.SIGNAL("activated()"), self.exit)
 
+    def initSignals(self):
+        QObject.connect(self, SIGNAL("setViewContent()"), self.setViewContent)
+
     def exit(self):
         if self.okularWin:
             self.okularWin.close()
         quit()
 
+    def setViewContent(self):
+        css = """<style type="text/css">
+                    h1 {
+                        padding-top: 0px;
+                        padding-bottom: 0px;
+                        text-align:center
+                    }
+                    h2 {
+                        padding-top: 0px;
+                        padding-bottom: 0px;
+                    }
+                    h3 {
+                        padding-top: 0px;
+                        padding-bottom: 0px;
+                        font-size:120%
+                    }
+                    .word {
+                        font-size:70%
+                    }
+                </style>"""
+        html = css
+        if self.curPresentation < len(self.config["title"]):
+            html += "<h1><span class='word'>Demonstration:</span><br />&laquo;" + self.config["title"][self.curPresentation] + "&raquo;</h1>"
+            html += "<h2><span class='word'>Presenter: </span>" + self.config["presenter"][self.curPresentation] + "</h2><hr>"
+            for i in xrange(self.curPresentation+1, len(self.config["title"])):
+                html += "<h3>&laquo;" + self.config["title"][i] + "&raquo; by " + self.config["presenter"][i] + "</h3><hr>"
+        else:
+            html += "<h1>No more presentation</h1>"    
+        self.webView.setHtml(html)
+            
     def okularOpenFile(self, path):
         if self.okularApp:
             self.okularApp.openDocument(path)
@@ -79,6 +105,7 @@ class PechaKuchaManager(QtGui.QDialog):
             print "Reached end of file."
             self.okularApp.slotTogglePresentation()
             self.curPresentation += 1
+            self.emit(SIGNAL("setViewContent()")) 
         else:
             self.okularApp.slotNextPage()
             self.okularNextSlideTimer()
@@ -91,12 +118,15 @@ class OkularApplication():
     def __init__(self):
         self.okularApp = None
         self.okularWin = None
+        self.alreadyRunning = False
 
     def launch(self):
-        process = Popen('/usr/bin/okular', stdout=PIPE)
+        if not self.alreadyRunning:
+            process = Popen('/usr/bin/okular', stdout=PIPE)
+            self.alreadyRunning = True
 
     def connectWithTimer(self):
-        sec = 1
+        sec = 0.1
         connectTimer = threading.Timer(sec, self.connect)
         connectTimer.start()
 
@@ -116,16 +146,17 @@ class OkularApplication():
                 self.okularWin = dbus.Interface(proxy, "org.qtproject.Qt.QWidget")
                 self.okularWin.hide()
             else:
-                print "Okular is not running. Trying to reconnect."
+                print "Okular is not running. Trying to launch and reconnect."
+                self.launch()
                 self.connectWithTimer()
         except DBusException, e:
             raise StandardError("Dbus error: %s" % e)
 
     def isSuccessful(self):
         if self.okularApp and self.okularWin:
-            return 1
+            return True
         else:
-            return 0
+            return False
 
 def configXmlParser(path):
     if os.path.isfile(path):
@@ -150,7 +181,6 @@ def main(arg):
     app = QtGui.QApplication(sys.argv)
 
     okularApp = OkularApplication()
-    okularApp.launch()
     okularApp.connect()
 
     while not okularApp.isSuccessful():
