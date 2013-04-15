@@ -19,7 +19,7 @@ class PechaKuchaManager(QtGui.QDialog):
         self.webView = None
         self.config = config
         self.curPresentation = 0
-        self.slideTimer = 0.1
+        self.slideTimer = config["sec-per-slide"]
         self.okularApp = okularApp
         self.okularWin = okularWin
 
@@ -160,16 +160,23 @@ class OkularApplication():
 
 def configXmlParser(path):
     if os.path.isfile(path):
-        config = {"file": [], "title": [], "presenter": [], "organization": []}    
+        config = {"file": [], "title": [], "presenter": [], "organization": [], "sec-per-slide": None}    
         dom = minidom.parse(path)
         configPath = os.getcwd() + '/' + path
         configPath = configPath[:-(len(configPath) - configPath.rindex("/"))]
+
+        for node in dom.getElementsByTagName('presentations'):
+            config["sec-per-slide"] = float(node.getAttribute("seconds-per-slide"))
+
         for node in dom.getElementsByTagName('id'):
             config["file"].append(configPath + "/" + node.toxml().replace("<id>", "").replace("</id>", "") + ".pdf")
+
         for node in dom.getElementsByTagName('title'):
             config["title"].append(node.toxml().replace("<title>", "").replace("</title>", ""))
+
         for node in dom.getElementsByTagName('presenter'):
             config["presenter"].append(node.toxml().replace("<presenter>", "").replace("</presenter>", ""))
+
         for node in dom.getElementsByTagName('organization'):
             config["organization"].append(node.toxml().replace("<organization>", "").replace("</organization>", ""))
         return config
