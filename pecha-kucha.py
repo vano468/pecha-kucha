@@ -27,6 +27,7 @@ class PechaKuchaManager(QtGui.QDialog):
         self.initUI()
         self.initShcuts()
         self.initSignals()
+        self.okularLoadNextPresentation()
         self.emit(SIGNAL("setViewContent()")) 
 
     def initUI(self):
@@ -68,16 +69,19 @@ class PechaKuchaManager(QtGui.QDialog):
     def okularOpenFile(self, path):
         if self.okularApp:
             self.okularApp.openDocument(path)
-            self.okularApp.slotGotoFirst()
-            self.okularApp.slotTogglePresentation()
-            self.setFocus()
 
     def okularNextPresentation(self):
         if self.curPresentation < len(self.config["file"]):
-            self.okularOpenFile(self.config["file"][self.curPresentation])
             self.okularNextSlideTimer()
+            self.okularApp.slotGotoFirst()
+            self.okularApp.slotTogglePresentation()
+            self.setFocus()
         else:
             self.exit()
+
+    def okularLoadNextPresentation(self):
+        if self.curPresentation < len(self.config["file"]):
+            self.okularOpenFile(self.config["file"][self.curPresentation])
 
     def okularNextSlide(self):
         if self.okularApp.pages() == self.okularApp.currentPage():
@@ -85,6 +89,7 @@ class PechaKuchaManager(QtGui.QDialog):
             self.okularApp.slotTogglePresentation()
             self.curPresentation += 1
             self.emit(SIGNAL("setViewContent()")) 
+            self.okularLoadNextPresentation()
         else:
             self.okularApp.slotNextPage()
             self.okularNextSlideTimer()
@@ -174,7 +179,7 @@ def main(arg):
         
     pkManager = PechaKuchaManager(configXmlParser(arg), okularApp.okularApp, okularApp.okularWin)
     pkManager.showFullScreen()
-    
+
     sys.exit(app.exec_()) 
 
 if __name__ == '__main__':
