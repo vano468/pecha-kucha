@@ -36,10 +36,6 @@ class PechaKuchaManager(QtGui.QDialog):
         self.webView = QWebView()
         layout.addWidget(self.webView)
 
-        #quitButton = QtGui.QPushButton("Exit")
-        #self.connect(quitButton, QtCore.SIGNAL('clicked()'), self.exit)
-        #layout.addWidget(quitButton)
-
     def initShcuts(self):
         self.shcutPgDown = QtGui.QShortcut(self)
         self.shcutPgDown.setKey("PgDown")

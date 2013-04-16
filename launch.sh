@@ -1,2 +1,2 @@
 #!/bin/bash
-./okular-dbus.py config-test/config.xml
+./pecha-kucha.py config-test/config.xml
