@@ -9,32 +9,9 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtWebKit import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from mako.template import Template
 from subprocess import Popen, PIPE
 from dbus.exceptions import DBusException
-
-css = """<style type="text/css">
-            h1 {
-                padding-top: 0px;
-                padding-bottom: 0px;
-                text-align:center;
-            }
-            h2 {
-                padding-top: 0px;
-                padding-bottom: 0px;
-            }
-            h3 {
-                padding-top: 0px;
-                padding-bottom: 0px;
-                font-size:120%;
-            }
-            .word {
-                font-size:70%;
-            }
-            h1#motivation {
-                font-size:500%;
-                margin-top: 10%;
-            }
-        </style>"""
 
 class PechaKuchaManager(QtGui.QDialog):
     def __init__(self, config, okularApp, okularWin):
@@ -81,14 +58,15 @@ class PechaKuchaManager(QtGui.QDialog):
         quit()
 
     def setViewContent(self):
-        html = css
+        presCurrent = Template(filename="templates/pres-current.html")
+        presNext = Template(filename="templates/pres-next.html")
+        motivation = Template(filename="templates/motivation.html")
         if self.curPresentation < len(self.config["title"]):
-            html += "<h1><span class='word'>Demonstration:</span><br />&laquo;" + self.config["title"][self.curPresentation] + "&raquo;</h1>"
-            html += "<h2><span class='word'>Presenter: </span>" + self.config["presenter"][self.curPresentation] + "</h2><hr>"
+            html = presCurrent.render(title = self.config["title"][self.curPresentation], presenter = self.config["presenter"][self.curPresentation])
             for i in xrange(self.curPresentation+1, len(self.config["title"])):
-                html += "<h3>&laquo;" + self.config["title"][i] + "&raquo; by " + self.config["presenter"][i] + "</h3><hr>"
+                html += presNext.render(title = self.config["title"][i], presenter = self.config["presenter"][i])
         else:
-            html += "<h1 id='motivation'>You may now proceed<br />to demonstration stands</h1>"    
+            html = motivation.render()
         self.webView.setHtml(html)
             
     def okularOpenFile(self, path):
