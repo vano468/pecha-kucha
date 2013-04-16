@@ -32,8 +32,8 @@ class PechaKuchaManager(QtGui.QDialog):
     def initUI(self):
         self.setWindowTitle("Pecha Kucha NG")
         layout = QtGui.QVBoxLayout(self)
-
-        self.webView = QWebView()
+        layout.setContentsMargins(0,0,0,0)
+        self.webView = QWebView(self)
         layout.addWidget(self.webView)
 
     def initShcuts(self):
