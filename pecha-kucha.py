@@ -28,7 +28,7 @@ class PechaKuchaManager(QtGui.QDialog):
         self.initShcuts()
         self.initSignals()
         self.okularLoadNextPresentation()
-        self.emit(SIGNAL("setViewContent()")) 
+        self.emit(SIGNAL("setViewContent()"))
 
     def initUI(self):
         self.setWindowTitle("Pecha Kucha NG")
@@ -46,6 +46,14 @@ class PechaKuchaManager(QtGui.QDialog):
         self.shcutEsc.setKey("Esc")
         self.connect(self.shcutEsc, QtCore.SIGNAL("activated()"), self.exit)
 
+        self.shcutUp = QtGui.QShortcut(self)
+        self.shcutUp.setKey("Up")
+        self.connect(self.shcutUp, QtCore.SIGNAL("activated()"), self.prevPresentation)
+
+        self.shcutUp = QtGui.QShortcut(self)
+        self.shcutUp.setKey("Down")
+        self.connect(self.shcutUp, QtCore.SIGNAL("activated()"), self.nextPresentation)
+
     def initSignals(self):
         QObject.connect(self, SIGNAL("setViewContent()"), self.setViewContent)
 
@@ -53,6 +61,18 @@ class PechaKuchaManager(QtGui.QDialog):
         if self.okularWin:
             self.okularWin.close()
         quit()
+
+    def prevPresentation(self):
+        if self.curPresentation > 0:
+            self.curPresentation -=1
+            self.emit(SIGNAL("setViewContent()"))
+            self.okularLoadNextPresentation()
+
+    def nextPresentation(self):
+        if self.curPresentation < len(self.config["file"]):
+            self.curPresentation +=1
+            self.emit(SIGNAL("setViewContent()"))
+            self.okularLoadNextPresentation()
 
     def setViewContent(self):
         presCurrent = Template(filename="templates/pres-current.html")
