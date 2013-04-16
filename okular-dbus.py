@@ -12,6 +12,30 @@ from PyQt4.QtGui import *
 from subprocess import Popen, PIPE
 from dbus.exceptions import DBusException
 
+css = """<style type="text/css">
+            h1 {
+                padding-top: 0px;
+                padding-bottom: 0px;
+                text-align:center;
+            }
+            h2 {
+                padding-top: 0px;
+                padding-bottom: 0px;
+            }
+            h3 {
+                padding-top: 0px;
+                padding-bottom: 0px;
+                font-size:120%;
+            }
+            .word {
+                font-size:70%;
+            }
+            h1#motivation {
+                font-size:500%;
+                margin-top: 10%;
+            }
+        </style>"""
+
 class PechaKuchaManager(QtGui.QDialog):
     def __init__(self, config, okularApp, okularWin):
         QtGui.QDialog.__init__(self)
@@ -35,9 +59,9 @@ class PechaKuchaManager(QtGui.QDialog):
         self.webView = QWebView()
         layout.addWidget(self.webView)
 
-        quitButton = QtGui.QPushButton("Exit")
-        self.connect(quitButton, QtCore.SIGNAL('clicked()'), self.exit)
-        layout.addWidget(quitButton)
+        #quitButton = QtGui.QPushButton("Exit")
+        #self.connect(quitButton, QtCore.SIGNAL('clicked()'), self.exit)
+        #layout.addWidget(quitButton)
 
     def initShcuts(self):
         self.shcutPgDown = QtGui.QShortcut(self)
@@ -57,25 +81,6 @@ class PechaKuchaManager(QtGui.QDialog):
         quit()
 
     def setViewContent(self):
-        css = """<style type="text/css">
-                    h1 {
-                        padding-top: 0px;
-                        padding-bottom: 0px;
-                        text-align:center
-                    }
-                    h2 {
-                        padding-top: 0px;
-                        padding-bottom: 0px;
-                    }
-                    h3 {
-                        padding-top: 0px;
-                        padding-bottom: 0px;
-                        font-size:120%
-                    }
-                    .word {
-                        font-size:70%
-                    }
-                </style>"""
         html = css
         if self.curPresentation < len(self.config["title"]):
             html += "<h1><span class='word'>Demonstration:</span><br />&laquo;" + self.config["title"][self.curPresentation] + "&raquo;</h1>"
@@ -83,7 +88,7 @@ class PechaKuchaManager(QtGui.QDialog):
             for i in xrange(self.curPresentation+1, len(self.config["title"])):
                 html += "<h3>&laquo;" + self.config["title"][i] + "&raquo; by " + self.config["presenter"][i] + "</h3><hr>"
         else:
-            html += "<h1>No more presentation</h1>"    
+            html += "<h1 id='motivation'>You may now proceed<br />to demonstration stands</h1>"    
         self.webView.setHtml(html)
             
     def okularOpenFile(self, path):
@@ -194,7 +199,7 @@ def main(arg):
         pass
         
     pkManager = PechaKuchaManager(configXmlParser(arg), okularApp.okularApp, okularApp.okularWin)
-    pkManager.show()
+    pkManager.showFullScreen()
     
     sys.exit(app.exec_()) 
 
