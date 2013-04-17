@@ -166,8 +166,11 @@ def configXmlParser(path):
     if os.path.isfile(path):
         config = {"file": [], "title": [], "presenter": [], "organization": [], "sec-per-slide": None}    
         dom = minidom.parse(path)
-        configPath = os.getcwd() + '/' + path
-        configPath = configPath[:-(len(configPath) - configPath.rindex("/"))]
+        if path[0] == '/':
+            configPath = path[:-(len(path) - path.rindex("/"))]
+        else: 
+            configPath = os.getcwd() + '/' + path
+            configPath = configPath[:-(len(configPath) - configPath.rindex("/"))]
 
         for node in dom.getElementsByTagName('presentations'):
             config["sec-per-slide"] = float(node.getAttribute("seconds-per-slide"))
