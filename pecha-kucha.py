@@ -75,9 +75,9 @@ class PechaKuchaManager(QtGui.QDialog):
             self.okularLoadNextPresentation()
 
     def setViewContent(self):
-        presCurrent = Template(filename="templates/pres-current.html")
-        presNext = Template(filename="templates/pres-next.html")
-        motivation = Template(filename="templates/motivation.html")
+        presCurrent = Template(filename = self.config["config-path"] + "/templates/pres-current.html")
+        presNext = Template(filename = self.config["config-path"] + "/templates/pres-next.html")
+        motivation = Template(filename = self.config["config-path"] + "/templates/motivation.html")
         if self.curPresentation < len(self.config["title"]):
             html = presCurrent.render(title = self.config["title"][self.curPresentation], presenter = self.config["presenter"][self.curPresentation])
             for i in xrange(self.curPresentation+1, len(self.config["title"])):
@@ -164,13 +164,14 @@ class OkularApplication():
 
 def configXmlParser(path):
     if os.path.isfile(path):
-        config = {"file": [], "title": [], "presenter": [], "organization": [], "sec-per-slide": None}    
+        config = {"file": [], "title": [], "presenter": [], "organization": [], "sec-per-slide": None, "config-path": None}    
         dom = minidom.parse(path)
         if path[0] == '/':
             configPath = path[:-(len(path) - path.rindex("/"))]
         else: 
             configPath = os.getcwd() + '/' + path
             configPath = configPath[:-(len(configPath) - configPath.rindex("/"))]
+        config["config-path"] = configPath
 
         for node in dom.getElementsByTagName('presentations'):
             config["sec-per-slide"] = float(node.getAttribute("seconds-per-slide"))
