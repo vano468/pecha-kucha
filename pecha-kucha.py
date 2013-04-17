@@ -18,9 +18,10 @@ class PechaKuchaManager(QtGui.QDialog):
         QtGui.QDialog.__init__(self)
 
         self.webView = None
+        self.slideTimer = None
         self.config = config
         self.curPresentation = 0
-        self.slideTimer = config["sec-per-slide"]
+        self.secPerSlide = config["sec-per-slide"]
         self.okularApp = okularApp
         self.okularWin = okularWin
 
@@ -54,6 +55,10 @@ class PechaKuchaManager(QtGui.QDialog):
         self.shcutUp.setKey("Down")
         self.connect(self.shcutUp, QtCore.SIGNAL("activated()"), self.nextPresentation)
 
+        self.shcutSpace = QtGui.QShortcut(self)
+        self.shcutSpace.setKey("Space")
+        self.connect(self.shcutSpace, QtCore.SIGNAL("activated()"), self.forceStopPresentation)
+
     def initSignals(self):
         QObject.connect(self, SIGNAL("setViewContent()"), self.setViewContent)
 
@@ -73,6 +78,11 @@ class PechaKuchaManager(QtGui.QDialog):
             self.curPresentation +=1
             self.emit(SIGNAL("setViewContent()"))
             self.okularLoadNextPresentation()
+
+    def forceStopPresentation(self):
+        if self.slideTimer:
+            self.slideTimer.cancel()
+        self.okularLoadNextPresentation()
 
     def setViewContent(self):
         presCurrent = Template(filename = self.config["config-path"] + "/templates/pres-current.html")
@@ -115,8 +125,8 @@ class PechaKuchaManager(QtGui.QDialog):
             self.okularNextSlideTimer()
 
     def okularNextSlideTimer(self):
-        slideTimer = threading.Timer(self.slideTimer, self.okularNextSlide)
-        slideTimer.start()
+        self.slideTimer = threading.Timer(self.secPerSlide, self.okularNextSlide)
+        self.slideTimer.start()
 
 class OkularApplication():
     def __init__(self):
