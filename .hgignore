@@ -1,6 +1,0 @@
-syntax: glob
-*~
-*.user
-.idea/.name
-.idea/workspace.xml
-*.swp
